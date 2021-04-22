@@ -19,8 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PatcherUtil {
-    private static final String PLUGIN_NAME = "PatcherX";
-    private static final String NOTIFICATION_TITLE = "PatcherX";
+    private static final String PLUGIN_NAME = "PatcherS";
+    private static final String NOTIFICATION_TITLE = "PatcherS";
     private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(PLUGIN_NAME + " log",
             NotificationDisplayType.BALLOON, true);
     private static final Pattern webPathPattern = Pattern.compile("(.+)/(webapp|WebRoot)/(.+)");
