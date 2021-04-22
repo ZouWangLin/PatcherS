@@ -1,0 +1,58 @@
+<idea-plugin>
+  <id>com.idea.patcher</id>
+  <name>PatcherS</name>
+  <version>1.0.0</version>
+  <vendor email="2628231526@qq.com" url="https://github.com/ZouWangLin/patcher">zwl</vendor>
+
+  <description><![CDATA[
+    Description:
+    功能说明：
+    <ol>
+      <li>可以手动选择导出修改过的编译文件或源码文件</li>
+      <li>自动把编译后的文件压缩</li>
+    </ol>
+    ]]></description>
+
+  <change-notes><![CDATA[
+    <ol>
+      <li>2021-04-22 新增特性：新增需求人和需求描述</li>
+      <li>2021-04-22 新增特性：导出文件区分层级并压缩</li>
+      <li>2021-04-21 新增特性：导出文件名默认为ROOT</li>
+    </ol>
+    ]]>
+    </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="181"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products -->
+  <depends>com.intellij.modules.vcs</depends>
+  <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.ultimate</depends>
+  <depends>com.intellij.modules.java</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.fun90.idea.patcher.PatcherConfig"/>
+  </extensions>
+
+  <actions>
+    <group id="com.fun90.idea.patcher" text="PatcherS" popup="true" icon="PatcherIcons.LOGO">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+      <add-to-group group-id="Vcs.RepositoryChangesBrowserMenu" anchor="first"/>
+      <!--            <add-to-group group-id="Vcs.Log.ChangesBrowser" anchor="first"/>-->
+      <add-to-group group-id="Vcs.RepositoryChangesBrowserToolbar" anchor="first"/>
+      <add-to-group group-id="VersionControlsGroup" anchor="first"/>
+      <action id="com.fun90.idea.patcher.CvsChangeListAction" class="com.fun90.idea.patcher.CvsChangeListAction" text="Copy Change List"/>
+      <action id="com.fun90.idea.patcher.ExportPatcherAction" class="com.fun90.idea.patcher.ExportPatcherAction" text="Export Patcher"/>
+    </group>
+
+
+    <!--<action id="com.sks.ClassesExportAction" class="ClassesExportAction" text="Export _Class">
+        <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+    </action>-->
+  </actions>
+
+</idea-plugin>
