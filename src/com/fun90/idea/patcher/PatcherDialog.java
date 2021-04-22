@@ -1,5 +1,9 @@
 package com.fun90.idea.patcher;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ZipUtil;
+import com.fun90.idea.constant.PluginConstant;
 import com.fun90.idea.util.FilesUtil;
 import com.fun90.idea.util.PatcherUtil;
 import com.fun90.idea.util.PathResult;
@@ -13,12 +17,14 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
+import org.apache.velocity.texen.util.FileUtil;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,10 +37,12 @@ public class PatcherDialog extends JDialog {
     private JTextField textField;
     private JButton fileChooseBtn;
     private JPanel filePanel;
-    private JTextField webTextField;
+    private JTextField webappTextField;
     private JComboBox<String> moduleComboBox;
     private JCheckBox deleteCheckBox;
     private JCheckBox sourceCheckBox;
+    private JTextField textField1;
+    private JTextField textField2;
     private AnActionEvent event;
     private JBList<VirtualFile> fileList;
     private Module module;
@@ -46,6 +54,8 @@ public class PatcherDialog extends JDialog {
         setTitle("Export Patcher Dialog");
         setContentPane(contentPane);
         setModal(true);
+        textField1.setText(config.getOtherMap().get("author"));
+        textField2.setText(config.getOtherMap().get("desc"));
         getRootPane().setDefaultButton(buttonOK);
         buttonOK.addActionListener(e -> onOK());
         buttonCancel.addActionListener(e -> onCancel());
@@ -133,21 +143,38 @@ public class PatcherDialog extends JDialog {
     }
 
     private void execute(CompileContext compileContext) {
-        // 导出目录
+        // 设置导出目录
         String exportPath = textField.getText();
         if (exportPath.endsWith(File.separator)) {
             exportPath += module.getName() + File.separator;
         } else {
             exportPath += File.separator + module.getName() + File.separator;
         }
+        Date date = new Date();
+        String yearMonthDay = DateUtil.format(date, DatePattern.PURE_DATE_PATTERN);
+        String time = DateUtil.format(date, "HHmm");
+
+        String dirName = exportPath + yearMonthDay + time + File.separator + "ROOT" + File.separator;
+        FileUtil.mkdir(dirName);
+
         ListModel<VirtualFile> selectedFiles = fileList.getModel();
-        PathResult result = PatcherUtil.getPathResult(module, selectedFiles, exportPath, compileContext);
+        PathResult result = PatcherUtil.getPathResult(module, selectedFiles, dirName, compileContext);
         // 删除原有文件
         if (deleteCheckBox.isSelected()) {
-            FilesUtil.delete(exportPath);
+            FilesUtil.delete(dirName);
         }
         // 导出
         result.getFromTo().forEach(FilesUtil::copy);
+
+        // 压缩文件
+        String authorText = textField1.getText();
+        String descText = textField2.getText();
+        config.getOtherMap().put("author",authorText);
+        config.getOtherMap().put("desc",descText);
+        String zipName = exportPath + yearMonthDay + time + File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
+                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + module.getName() + ".zip";
+        ZipUtil.zip(dirName, zipName, true);
+
         // 提示信息
         StringBuilder message = new StringBuilder();
         int notExportSize = result.getUnsettledList().size();

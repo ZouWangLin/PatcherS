@@ -16,6 +16,7 @@ import java.util.Map;
 class PatcherConfig implements PersistentStateComponent<PatcherConfig> {
     private Map<String, String> modulePathMap = new HashMap<>();
     private Map<String, String> exportPathMap = new HashMap<>();
+    private Map<String, String> otherMap = new HashMap<>();
 
     @Nullable
     @Override
@@ -47,5 +48,13 @@ class PatcherConfig implements PersistentStateComponent<PatcherConfig> {
 
     public void setExportPathMap(Map<String, String> exportPathMap) {
         this.exportPathMap = exportPathMap;
+    }
+
+    public Map<String, String> getOtherMap() {
+        return otherMap;
+    }
+
+    public void setOtherMap(Map<String, String> otherMap) {
+        this.otherMap = otherMap;
     }
 }
