@@ -5,7 +5,6 @@
 
 - 基于serical的代码改造而来，感谢：https://github.com/serical/patcher
 - 基于fun90的代码改造而来，感谢：https://github.com/fun90/patcher
-**下载**：
 
 主要功能：
 1. 可以手动选择导出的修改过的编译文件或源码文件
