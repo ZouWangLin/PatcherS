@@ -2,6 +2,7 @@ package com.fun90.idea.patcher;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.fun90.idea.constant.PluginConstant;
 import com.fun90.idea.util.FilesUtil;
@@ -37,7 +38,7 @@ public class PatcherDialog extends JDialog {
     private JTextField textField;
     private JButton fileChooseBtn;
     private JPanel filePanel;
-    private JTextField webappTextField;
+    private JTextField projectNameTextField;
     private JComboBox<String> moduleComboBox;
     private JCheckBox deleteCheckBox;
     private JCheckBox sourceCheckBox;
@@ -88,14 +89,25 @@ public class PatcherDialog extends JDialog {
         });
 
         // 增加空选项，防止第一项无法选中
-        moduleComboBox.addItem("");
         for (Module module : modules) {
             moduleComboBox.addItem(module.getName());
         }
         if (module != null) {
             moduleComboBox.setSelectedItem(module.getName());
+            String projectName = config.getOtherMap().get("projectName");
+            if (projectName != null) {
+                projectNameTextField.setText(projectName);
+            } else {
+                projectNameTextField.setText(module.getName());
+            }
+
         }
-        moduleComboBox.addItemListener(e -> module = moduleManager.findModuleByName((String) e.getItem()));
+        moduleComboBox.addItemListener(e -> {
+            if(StrUtil.isNotBlank((String) e.getItem())){
+                module = moduleManager.findModuleByName((String) e.getItem());
+                projectNameTextField.setText(module.getName());
+            }
+        });
     }
 
     private void createUIComponents() {
@@ -143,12 +155,13 @@ public class PatcherDialog extends JDialog {
     }
 
     private void execute(CompileContext compileContext) {
+        String moduleName = projectNameTextField.getText().trim();
         // 设置导出目录
         String exportPath = textField.getText();
         if (exportPath.endsWith(File.separator)) {
-            exportPath += module.getName() + File.separator;
+            exportPath += moduleName + File.separator;
         } else {
-            exportPath += File.separator + module.getName() + File.separator;
+            exportPath += File.separator + moduleName + File.separator;
         }
         Date date = new Date();
         String yearMonthDay = DateUtil.format(date, DatePattern.PURE_DATE_PATTERN);
@@ -169,10 +182,11 @@ public class PatcherDialog extends JDialog {
         // 压缩文件
         String authorText = textField1.getText();
         String descText = textField2.getText();
-        config.getOtherMap().put("author",authorText);
-        config.getOtherMap().put("desc",descText);
+        config.getOtherMap().put("author", authorText);
+        config.getOtherMap().put("desc", descText);
+        config.getOtherMap().put("projectName", moduleName);
         String zipName = exportPath + yearMonthDay + time + File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
-                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + module.getName() + ".zip";
+                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
         ZipUtil.zip(dirName, zipName, true);
 
         // 提示信息
