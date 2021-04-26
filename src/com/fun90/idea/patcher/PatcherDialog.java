@@ -195,7 +195,7 @@ public class PatcherDialog extends JDialog {
         int fileCount = selectedFiles.getSize() - notExportSize;
         message.append("Export ").append(fileCount).append(" files. ");
         if (fileCount != 0) {
-            message.append("(<a href=\"file://").append(exportPath).append("\" target=\"blank\">open</a>)<br>");
+            message.append("(<a href=\"file://").append(exportPath + yearMonthDay + time).append("\" target=\"blank\">open</a>)<br>");
         }
         if (notExportSize > 0) {
             message.append("<b>Warning:</b>");
