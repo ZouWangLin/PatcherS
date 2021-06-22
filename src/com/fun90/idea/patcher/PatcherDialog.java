@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.fun90.idea.constant.PluginConstant;
+import com.fun90.idea.thread.SecureFxRunnable;
 import com.fun90.idea.util.FilesUtil;
 import com.fun90.idea.util.PatcherUtil;
 import com.fun90.idea.util.PathResult;
@@ -40,7 +41,7 @@ public class PatcherDialog extends JDialog {
     private JPanel filePanel;
     private JTextField projectNameTextField;
     private JComboBox<String> moduleComboBox;
-    private JCheckBox deleteCheckBox;
+    private JCheckBox openSecureFX;
     private JCheckBox sourceCheckBox;
     private JTextField textField1;
     private JTextField textField2;
@@ -148,6 +149,13 @@ public class PatcherDialog extends JDialog {
             CompileExecutor compileExecutor = new CompileExecutor(module, event);
             compileExecutor.run(this::execute, this::dispose);
         }
+
+        //启动SecureFx
+        if(openSecureFX.isSelected()){
+            Thread secureFxThread = new Thread(new SecureFxRunnable());
+            secureFxThread.start();
+        }
+
     }
 
     private void onCancel() {
@@ -173,9 +181,9 @@ public class PatcherDialog extends JDialog {
         ListModel<VirtualFile> selectedFiles = fileList.getModel();
         PathResult result = PatcherUtil.getPathResult(module, selectedFiles, dirName, compileContext);
         // 删除原有文件
-        if (deleteCheckBox.isSelected()) {
-            FilesUtil.delete(dirName);
-        }
+//        if (openSecureFX.isSelected()) {
+//            FilesUtil.delete(dirName);
+//        }
         // 导出
         result.getFromTo().forEach(FilesUtil::copy);
 

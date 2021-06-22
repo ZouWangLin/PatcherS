@@ -40,12 +40,12 @@
                   <text value="OK"/>
                 </properties>
               </component>
-              <component id="fc863" class="javax.swing.JCheckBox" binding="deleteCheckBox">
+              <component id="fc863" class="javax.swing.JCheckBox" binding="openSecureFX">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Delete existing files"/>
+                  <text value="Open SecureFX"/>
                 </properties>
               </component>
               <component id="8ce0c" class="javax.swing.JCheckBox" binding="sourceCheckBox" default-binding="true">
