@@ -104,7 +104,8 @@ public class PatcherUtil {
             moduleFile.map(file -> file.getParent().getPath()).ifPresent(modulePath -> moduleMap.put(modulePath, module));
         }
         // 模块对象
-        Module module = modules.length == 1 ? modules[0] : event.getData(LangDataKeys.MODULE);
+//        Module module = modules.length == 1 ? modules[0] : event.getData(LangDataKeys.MODULE);
+        Module module = modules[0];
         VirtualFile[] files = event.getData(LangDataKeys.VIRTUAL_FILE_ARRAY);
         if (module == null && !isNotSameModule(files)) {
             String moduleDirectoryPath = PatcherUtil.getModuleDirectoryPath(files);
