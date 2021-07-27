@@ -10,11 +10,13 @@
     <ol>
       <li>可以手动选择导出修改过的编译文件或源码文件</li>
       <li>自动把编译后的文件压缩</li>
+      <li>自动复制ROOT文件夹到剪切板</li>
     </ol>
     ]]></description>
 
   <change-notes><![CDATA[
     <ol>
+      <li>2021-07-27 新增特性：复制ROOT文件夹到剪切板</li>
       <li>2021-07-02 修复：修复maven gradle导出静态资源异常</li>
       <li>2021-06-22 优化操作：新增启动"SecureFX"选项</li>
       <li>2021-04-22 优化操作：修改 open 操作打开的目录</li>

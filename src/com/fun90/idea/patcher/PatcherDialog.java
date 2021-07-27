@@ -2,6 +2,7 @@ package com.fun90.idea.patcher;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.swing.clipboard.ClipboardUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.fun90.idea.constant.PluginConstant;
@@ -20,15 +21,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
 import org.apache.velocity.texen.util.FileUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.*;
 
 public class PatcherDialog extends JDialog {
 
@@ -104,7 +108,7 @@ public class PatcherDialog extends JDialog {
 
         }
         moduleComboBox.addItemListener(e -> {
-            if(StrUtil.isNotBlank((String) e.getItem())){
+            if (StrUtil.isNotBlank((String) e.getItem())) {
                 module = moduleManager.findModuleByName((String) e.getItem());
                 projectNameTextField.setText(module.getName());
             }
@@ -151,7 +155,7 @@ public class PatcherDialog extends JDialog {
         }
 
         //启动SecureFx
-        if(openSecureFX.isSelected()){
+        if (openSecureFX.isSelected()) {
             Thread secureFxThread = new Thread(new SecureFxRunnable());
             secureFxThread.start();
         }
@@ -196,6 +200,34 @@ public class PatcherDialog extends JDialog {
         String zipName = exportPath + yearMonthDay + time + File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
                 PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
         ZipUtil.zip(dirName, zipName, true);
+
+        // 复制文件到剪切板
+        ClipboardUtil.set(new Transferable() {
+            DataFlavor[] dataFlavors = new DataFlavor[]{DataFlavor.javaFileListFlavor};
+
+            @Override
+            public DataFlavor[] getTransferDataFlavors() {
+                return dataFlavors;
+            }
+
+            @Override
+            public boolean isDataFlavorSupported(DataFlavor flavor) {
+                for (int i = 0; i < dataFlavors.length; i++) {
+                    if (dataFlavors[i].equals(flavor)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @NotNull
+            @Override
+            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                List<File> files = new ArrayList<File>();
+                files.add(new File(dirName));
+                return files;
+            }
+        });
 
         // 提示信息
         StringBuilder message = new StringBuilder();
