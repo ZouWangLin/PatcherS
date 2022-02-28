@@ -1,6 +1,11 @@
 package com.fun90.idea.patcher;
 
-import com.intellij.openapi.actionSystem.*;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.ui.Messages;
@@ -8,8 +13,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiJavaFile;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
@@ -36,27 +39,30 @@ public class ClassesExportAction extends AnAction {
 
     private void getVirtualFile(String sourceName, VirtualFile virtualFile[], String compileRoot)
             throws Exception {
-        if (!ArrayUtils.isEmpty(virtualFile)) {
+        if (!ArrayUtil.isEmpty(virtualFile)) {
             VirtualFile arr$[] = virtualFile;
             int len$ = arr$.length;
             for (int i$ = 0; i$ < len$; i$++) {
                 VirtualFile vf = arr$[i$];
                 String srcName;
-                if (StringUtils.indexOf(vf.toString(), "$") != -1) {
-                    srcName = StringUtils.substring(vf.toString(), StringUtils.lastIndexOf(vf.toString(), "/") + 1, StringUtils.indexOf(vf.toString(), "$"));
+                if (StrUtil.indexOf(vf.toString(), '$') != -1) {
+                    srcName = StrUtil.sub(vf.toString(), StrUtil.lastIndexOfIgnoreCase(vf.toString(), "/") + 1, StrUtil.indexOf(vf.toString(), '$'));
                 } else {
-                    srcName = StringUtils.substring(vf.toString(), StringUtils.lastIndexOf(vf.toString(), "/") + 1, StringUtils.length(vf.toString()) - 6);
+                    srcName = StrUtil.sub(vf.toString(), StrUtil.lastIndexOfIgnoreCase(vf.toString(), "/") + 1,
+                            StrUtil.length(vf.toString()) - 6);
                 }
-                String dstName = StringUtils.substring(sourceName, 0, StringUtils.length(sourceName) - 5);
-                if (StringUtils.equals(srcName, dstName)) {
-                    String outRoot = (new StringBuilder()).append(StringUtils.substring(compileRoot, 0, StringUtils.lastIndexOf(compileRoot, "/"))).append("/out").toString();
-                    String packagePath = StringUtils.substring(vf.getPath(), StringUtils.length(compileRoot), StringUtils.length(vf.getPath()));
+                String dstName = StrUtil.sub(sourceName, 0, StrUtil.length(sourceName) - 5);
+                if (StrUtil.equals(srcName, dstName)) {
+                    String outRoot = (new StringBuilder()).append(StrUtil.sub(compileRoot, 0, StrUtil.lastIndexOfIgnoreCase(compileRoot, "/"))).append("/out").toString();
+                    String packagePath = StrUtil.sub(vf.getPath(), StrUtil.length(compileRoot), StrUtil.length(vf.getPath()));
                     File s = new File(vf.getPath());
                     File t = new File((new StringBuilder()).append(outRoot).append(packagePath).toString());
                     FileUtil.copy(s, t);
                 }
-                if (!ArrayUtils.isEmpty(virtualFile))
+                if (!ArrayUtil.isEmpty(virtualFile)) {
                     getVirtualFile(sourceName, vf.getChildren(), compileRoot);
+                }
+
             }
 
         }
