@@ -17,6 +17,7 @@ class PatcherConfig implements PersistentStateComponent<PatcherConfig> {
     private Map<String, String> modulePathMap = new HashMap<>();
     private Map<String, String> exportPathMap = new HashMap<>();
     private Map<String, String> otherMap = new HashMap<>();
+    private Map<String, String> domainMap = new HashMap<>();
 
     @Nullable
     @Override
@@ -56,5 +57,13 @@ class PatcherConfig implements PersistentStateComponent<PatcherConfig> {
 
     public void setOtherMap(Map<String, String> otherMap) {
         this.otherMap = otherMap;
+    }
+
+    public Map<String, String> getDomainMap() {
+        return domainMap;
+    }
+
+    public void setDomainMap(Map<String, String> domainMap) {
+        this.domainMap = domainMap;
     }
 }

@@ -3,10 +3,14 @@ package com.fun90.idea.patcher;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.swing.clipboard.ClipboardUtil;
+import cn.hutool.core.util.CharUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.fun90.idea.constant.PluginConstant;
+import com.fun90.idea.constant.TypeEnum;
 import com.fun90.idea.thread.SecureFxRunnable;
 import com.fun90.idea.util.FilesUtil;
 import com.fun90.idea.util.PatcherUtil;
@@ -38,7 +42,6 @@ public class PatcherDialog extends JDialog {
 
     private JPanel contentPane;
     private JButton buttonOK;
-    private JButton buttonCancel;
 
     private JTextField textField;
     private JButton fileChooseBtn;
@@ -49,6 +52,7 @@ public class PatcherDialog extends JDialog {
     private JCheckBox sourceCheckBox;
     private JTextField textField1;
     private JTextField textField2;
+    private JCheckBox filterCheckBox;
     private AnActionEvent event;
     private JBList<VirtualFile> fileList;
     private Module module;
@@ -64,7 +68,6 @@ public class PatcherDialog extends JDialog {
         textField2.setText(config.getOtherMap().get("desc"));
         getRootPane().setDefaultButton(buttonOK);
         buttonOK.addActionListener(e -> onOK());
-        buttonCancel.addActionListener(e -> onCancel());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -184,12 +187,28 @@ public class PatcherDialog extends JDialog {
 
         ListModel<VirtualFile> selectedFiles = fileList.getModel();
         PathResult result = PatcherUtil.getPathResult(module, selectedFiles, dirName, compileContext);
-        // 删除原有文件
-//        if (openSecureFX.isSelected()) {
-//            FilesUtil.delete(dirName);
-//        }
+
         // 导出
         result.getFromTo().forEach(FilesUtil::copy);
+
+        //过滤
+        Map<String, String> domainMap = config.getDomainMap();
+        List<File> files = FileUtil.loopFiles(exportPath + yearMonthDay + time + File.separator + "ROOT");
+        for (File file : files) {
+            String name = file.getName();
+            String fileType = StrUtil.subAfter(name, CharUtil.DOT, true);
+            if (file.isFile() && TypeEnum.contains(fileType)) {
+                FileReader fileReader = new FileReader(file);
+                String content = fileReader.readString();
+
+                for (Map.Entry<String, String> ele : domainMap.entrySet()) {
+                    content = content.replaceAll(ele.getKey(), ele.getValue());
+                }
+
+                FileWriter fileWriter = new FileWriter(file);
+                fileWriter.write(content, false);
+            }
+        }
 
         // 压缩文件
         String authorText = textField1.getText();
