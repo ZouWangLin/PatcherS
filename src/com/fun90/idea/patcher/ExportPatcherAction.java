@@ -17,7 +17,7 @@ public class ExportPatcherAction extends AnAction {
             PatcherUtil.showWarning("Please select the module manually!", event.getProject());
         }
         PatcherDialog dialog = new PatcherDialog(event);
-        dialog.setSize(600, 400);
+        dialog.setSize(600, 460);
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
         dialog.requestFocus();

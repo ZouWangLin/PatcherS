@@ -7,6 +7,7 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.swing.clipboard.ClipboardUtil;
 import cn.hutool.core.util.CharUtil;
+import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.fun90.idea.constant.PluginConstant;
@@ -30,12 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class PatcherDialog extends JDialog {
@@ -53,6 +52,8 @@ public class PatcherDialog extends JDialog {
     private JTextField textField1;
     private JTextField textField2;
     private JCheckBox filterCheckBox;
+    private JCheckBox svnCheckBox;
+    private JTextField textField3;
     private AnActionEvent event;
     private JBList<VirtualFile> fileList;
     private Module module;
@@ -66,6 +67,7 @@ public class PatcherDialog extends JDialog {
         setModal(true);
         textField1.setText(config.getOtherMap().get("author"));
         textField2.setText(config.getOtherMap().get("desc"));
+        textField3.setText(config.getOtherMap().get("svn"));
         getRootPane().setDefaultButton(buttonOK);
         buttonOK.addActionListener(e -> onOK());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -192,33 +194,50 @@ public class PatcherDialog extends JDialog {
         result.getFromTo().forEach(FilesUtil::copy);
 
         //过滤
-        Map<String, String> domainMap = config.getDomainMap();
-        List<File> files = FileUtil.loopFiles(exportPath + yearMonthDay + time + File.separator + "ROOT");
-        for (File file : files) {
-            String name = file.getName();
-            String fileType = StrUtil.subAfter(name, CharUtil.DOT, true);
-            if (file.isFile() && TypeEnum.contains(fileType)) {
-                FileReader fileReader = new FileReader(file);
-                String content = fileReader.readString();
+        if (filterCheckBox.isSelected()) {
+            Map<String, String> domainMap = config.getDomainMap();
+            List<File> files = FileUtil.loopFiles(exportPath + yearMonthDay + time + File.separator + "ROOT");
+            for (File file : files) {
+                String name = file.getName();
+                String fileType = StrUtil.subAfter(name, CharUtil.DOT, true);
+                if (file.isFile() && TypeEnum.contains(fileType)) {
+                    FileReader fileReader = new FileReader(file);
+                    String content = fileReader.readString();
 
-                for (Map.Entry<String, String> ele : domainMap.entrySet()) {
-                    content = content.replaceAll(ele.getKey(), ele.getValue());
+                    for (Map.Entry<String, String> ele : domainMap.entrySet()) {
+                        content = content.replaceAll(ele.getKey(), ele.getValue());
+                    }
+
+                    FileWriter fileWriter = new FileWriter(file);
+                    fileWriter.write(content, false);
                 }
-
-                FileWriter fileWriter = new FileWriter(file);
-                fileWriter.write(content, false);
             }
         }
+
 
         // 压缩文件
         String authorText = textField1.getText();
         String descText = textField2.getText();
+        String svn = textField3.getText();
         config.getOtherMap().put("author", authorText);
         config.getOtherMap().put("desc", descText);
         config.getOtherMap().put("projectName", moduleName);
-        String zipName = exportPath + yearMonthDay + time + File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
-                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
+        config.getOtherMap().put("svn", svn);
+
+        String fileName = File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
+                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText +
+                PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
+        String zipName = exportPath + yearMonthDay + time + fileName;
         ZipUtil.zip(dirName, zipName, true);
+
+        //提交svn
+        if (svnCheckBox.isSelected()) {
+            String svnFullPath = textField3.getText().trim() + "/" + fileName;
+
+            ZipUtil.zip(dirName, svnFullPath, true);
+            RuntimeUtil.exec("svn add " + svnFullPath);
+            RuntimeUtil.exec("svn commit " + svnFullPath + " -m \"" + "\"");
+        }
 
         // 复制文件到剪切板
         ClipboardUtil.set(new Transferable() {
@@ -241,7 +260,7 @@ public class PatcherDialog extends JDialog {
 
             @NotNull
             @Override
-            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            public Object getTransferData(DataFlavor flavor) {
                 List<File> files = new ArrayList<File>();
                 files.add(new File(dirName));
                 return files;
