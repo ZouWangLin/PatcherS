@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.swing.clipboard.ClipboardUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.CharUtil;
 import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
@@ -54,6 +55,7 @@ public class PatcherDialog extends JDialog {
     private JCheckBox filterCheckBox;
     private JCheckBox svnCheckBox;
     private JTextField textField3;
+    private JTextArea textArea1;
     private AnActionEvent event;
     private JBList<VirtualFile> fileList;
     private Module module;
@@ -68,6 +70,7 @@ public class PatcherDialog extends JDialog {
         textField1.setText(config.getOtherMap().get("author"));
         textField2.setText(config.getOtherMap().get("desc"));
         textField3.setText(config.getOtherMap().get("svn"));
+        textArea1.setText(config.getOtherMap().get("domainMap"));
         getRootPane().setDefaultButton(buttonOK);
         buttonOK.addActionListener(e -> onOK());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -195,7 +198,24 @@ public class PatcherDialog extends JDialog {
 
         //过滤
         if (filterCheckBox.isSelected()) {
-            Map<String, String> domainMap = config.getDomainMap();
+            //获取textField4的值
+            String domainMapStr = textArea1.getText();
+            domainMapStr = StrUtil.removeAllLineBreaks(domainMapStr);
+            List<String> domainMapList = StrUtil.split(domainMapStr, ';');
+
+            //以逗号切割srcDomain
+            List<String> srcDomainList = StrUtil.split(domainMapList.get(0).trim(), ',');
+            //以逗号切割targetDomain
+            List<String> targetDomainList = StrUtil.split(domainMapList.get(1).trim(), ',');
+
+            //构建domainMap
+            Map<String, String> domainMap = new HashMap<>();
+            //fori遍历srcDomainList
+            for (int i = 0; i < srcDomainList.size(); i++) {
+                //向domainMap中添加键值对
+                domainMap.put(srcDomainList.get(i), targetDomainList.get(i));
+            }
+
             List<File> files = FileUtil.loopFiles(exportPath + yearMonthDay + time + File.separator + "ROOT");
             for (File file : files) {
                 String name = file.getName();
@@ -219,10 +239,12 @@ public class PatcherDialog extends JDialog {
         String authorText = textField1.getText();
         String descText = textField2.getText();
         String svn = textField3.getText();
+        String dominoMapStr = textArea1.getText();
         config.getOtherMap().put("author", authorText);
         config.getOtherMap().put("desc", descText);
         config.getOtherMap().put("projectName", moduleName);
         config.getOtherMap().put("svn", svn);
+        config.getOtherMap().put("domainMap", dominoMapStr);
 
         String fileName = File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
                 PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText +
@@ -233,10 +255,10 @@ public class PatcherDialog extends JDialog {
         //提交svn
         if (svnCheckBox.isSelected()) {
             String svnFullPath = textField3.getText().trim() + "/" + fileName;
-
             ZipUtil.zip(dirName, svnFullPath, true);
-            RuntimeUtil.exec("svn add " + svnFullPath);
-            RuntimeUtil.exec("svn commit " + svnFullPath + " -m \"" + "\"");
+            RuntimeUtil.execForStr("svn add " + svnFullPath);
+            RuntimeUtil.execForStr("svn commit " + svnFullPath + " -m \"" + "\"");
+            ThreadUtil.sleep(1000);
         }
 
         // 复制文件到剪切板

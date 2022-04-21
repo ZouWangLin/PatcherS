@@ -18,7 +18,7 @@ public class CvsChangeListAction extends AnAction {
             PatcherUtil.showWarning("Please select the module manually!", event.getProject());
         }
         CvsChangeListDialog dialog = new CvsChangeListDialog(event);
-        dialog.setSize(600, 400);
+        dialog.setSize(800, 600);
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
         dialog.requestFocus();
