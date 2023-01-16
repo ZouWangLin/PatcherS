@@ -254,6 +254,10 @@ public class PatcherDialog extends JDialog {
 
         //提交svn
         if (svnCheckBox.isSelected()) {
+            //打开谷歌浏览器
+            String runChrome = "cmd /c start chrome https://devops.pocketcity.com/deploy-approval?workflow_id=1";
+            RuntimeUtil.execForStr(runChrome);
+
             String svnFullPath = textField3.getText().trim() + "/" + fileName;
             ZipUtil.zip(dirName, svnFullPath, true);
             RuntimeUtil.execForStr("svn add " + svnFullPath);

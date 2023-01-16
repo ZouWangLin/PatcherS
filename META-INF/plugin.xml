@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>com.idea.patcher</id>
   <name>PatcherS</name>
-  <version>3.0.0</version>
+  <version>4.0.0</version>
   <vendor email="2628231526@qq.com" url="https://github.com/ZouWangLin/PatcherS">zwl</vendor>
 
   <description><![CDATA[
@@ -13,6 +13,7 @@
       <li>自动复制ROOT文件夹到剪切板</li>
       <li>自动过滤html css js</li>
       <li>一键提交压缩包到svn目录</li>
+      <li>一键打开部署表单页面</li>
     </ol>
     ]]></description>
 
@@ -27,6 +28,7 @@
       <li>2021-04-21 新增特性：导出文件名默认为ROOT</li>
       <li>2022-03-01 新增特性：新增html css js文件过滤</li>
       <li>2022-04-14 新增特性：一键提交压缩包到svn目录</li>
+      <li>2022-06-27 新增特性：一键打开部署表单页面</li>
     </ol>
     ]]>
     </change-notes>
