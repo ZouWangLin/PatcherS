@@ -7,10 +7,7 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.swing.clipboard.ClipboardUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.CharUtil;
-import cn.hutool.core.util.RuntimeUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.ZipUtil;
+import cn.hutool.core.util.*;
 import com.fun90.idea.constant.PluginConstant;
 import com.fun90.idea.constant.TypeEnum;
 import com.fun90.idea.thread.SecureFxRunnable;
@@ -36,6 +33,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 
 public class PatcherDialog extends JDialog {
@@ -193,8 +191,21 @@ public class PatcherDialog extends JDialog {
         ListModel<VirtualFile> selectedFiles = fileList.getModel();
         PathResult result = PatcherUtil.getPathResult(module, selectedFiles, dirName, compileContext);
 
-        // 导出
-        result.getFromTo().forEach(FilesUtil::copy);
+        if (ObjectUtil.isNull(compileContext)) {
+            //导出源文件
+            Map<Path, Path> fromTo = result.getFromTo();
+            for (Map.Entry<Path, Path> ele : fromTo.entrySet()) {
+                List<File> files = FileUtil.loopFiles(new File(ele.getKey().toString()));
+                for (File file : files) {
+                    String lastFileName = StrUtil.subAfter(file.getPath(), ele.getKey().toString(), true);
+                    System.out.println(lastFileName);
+                    FileUtil.copy(file, new File(ele.getValue() + StrUtil.BACKSLASH + lastFileName), true);
+                }
+            }
+        } else {
+            // 导出
+            result.getFromTo().forEach(FilesUtil::copy);
+        }
 
         //过滤
         if (filterCheckBox.isSelected()) {
@@ -246,9 +257,7 @@ public class PatcherDialog extends JDialog {
         config.getOtherMap().put("svn", svn);
         config.getOtherMap().put("domainMap", dominoMapStr);
 
-        String fileName = File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time +
-                PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText +
-                PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
+        String fileName = File.separator + yearMonthDay + PluginConstant.ZIP_SEPARATOR + time + PluginConstant.ZIP_SEPARATOR + authorText + PluginConstant.ZIP_SEPARATOR + descText + PluginConstant.ZIP_SEPARATOR + moduleName + ".zip";
         String zipName = exportPath + yearMonthDay + time + fileName;
         ZipUtil.zip(dirName, zipName, true);
 
