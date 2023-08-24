@@ -10,6 +10,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.*;
 import com.fun90.idea.constant.PluginConstant;
 import com.fun90.idea.constant.TypeEnum;
+import com.fun90.idea.thread.BootSubmitRunnable;
 import com.fun90.idea.thread.SecureFxRunnable;
 import com.fun90.idea.util.FilesUtil;
 import com.fun90.idea.util.PatcherUtil;
@@ -19,6 +20,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,6 +37,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class PatcherDialog extends JDialog {
 
@@ -54,6 +57,8 @@ public class PatcherDialog extends JDialog {
     private JCheckBox svnCheckBox;
     private JTextField textField3;
     private JTextArea textArea1;
+    private JCheckBox springBootCheckBox;
+    private JTextField textField4;
     private AnActionEvent event;
     private JBList<VirtualFile> fileList;
     private Module module;
@@ -155,6 +160,21 @@ public class PatcherDialog extends JDialog {
         if (sourceCheckBox.isSelected()) {
             this.execute(null);
             this.dispose();
+        } else if (springBootCheckBox.isSelected()) {
+            Thread thread = new Thread(new BootSubmitRunnable(projectNameTextField,textField1,textField2,textField4,textArea1, event, module, svnCheckBox, textField3));
+            thread.start();
+            String moduleName = projectNameTextField.getText().trim();
+            String authorText = textField1.getText();
+            String descText = textField2.getText();
+            String svn = textField3.getText();
+            String dominoMapStr = textArea1.getText();
+            config.getOtherMap().put("author", authorText);
+            config.getOtherMap().put("desc", descText);
+            config.getOtherMap().put("projectName", moduleName);
+            config.getOtherMap().put("svn", svn);
+            config.getOtherMap().put("domainMap", dominoMapStr);
+
+            this.dispose();
         } else {
             CompileExecutor compileExecutor = new CompileExecutor(module, event);
             compileExecutor.run(this::execute, this::dispose);
@@ -165,7 +185,6 @@ public class PatcherDialog extends JDialog {
             Thread secureFxThread = new Thread(new SecureFxRunnable());
             secureFxThread.start();
         }
-
     }
 
     private void onCancel() {
@@ -208,8 +227,7 @@ public class PatcherDialog extends JDialog {
         }
 
         //过滤
-        if (filterCheckBox.isSelected()) {
-            //获取textField4的值
+        if (filterCheckBox.isSelected() && !springBootCheckBox.isSelected()) {
             String domainMapStr = textArea1.getText();
             domainMapStr = StrUtil.removeAllLineBreaks(domainMapStr);
             List<String> domainMapList = StrUtil.split(domainMapStr, ';');
